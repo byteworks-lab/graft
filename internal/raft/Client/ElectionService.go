@@ -2,15 +2,17 @@ package raft
 
 import (
 	pb "cache/internal/election"
+	"cache/internal/utils"
 	"cache/internal/validation"
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/metadata"
 	"log"
 	"sync"
 	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 type ElectionServiceInf interface {
@@ -33,7 +35,7 @@ type ElectionService struct {
 }
 
 func NewElectionService(client *Client) *ElectionService {
-	duration := time.Duration(rangeIn(5, 10)) * time.Second
+	duration := time.Duration(utils.RangeIn(5, 10)) * time.Second
 	return &ElectionService{
 		currentTerm:        1,
 		votedFor:           "",

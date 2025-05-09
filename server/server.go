@@ -2,7 +2,7 @@ package server
 
 import (
 	"cache/config"
-	"cache/internal/raft/Client"
+	raft "cache/internal/raft/Client"
 	wal2 "cache/internal/raft/WAL"
 	"net"
 )

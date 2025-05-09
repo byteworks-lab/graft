@@ -13,7 +13,8 @@ type Config struct {
 	ClusterName          string `json:"cluster_name"`
 	ClusterUUID          string `json:"cluster_id"`
 	ServiceDiscoveryAddr string `json:"service_discovery_addr"`
-	DebugMode            bool   `json:"debug_mode"`
+	DebugMode            bool   `json:"debug_mode"` // Debug mode is used for running application on multiple ports on same
+	//	machine . Need to be set true only for non prod env
 }
 
 func LoadConfig(configFile string) (*Config, error) {

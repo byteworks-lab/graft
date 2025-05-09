@@ -4,13 +4,14 @@ import (
 	"cache/config"
 	"cache/factory"
 	"cache/internal/store"
+	utils "cache/internal/utils"
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
 	"log"
-	"math/rand"
 	"strconv"
 	"sync"
+
+	"google.golang.org/grpc"
 )
 
 type ClientInf interface {
@@ -69,9 +70,11 @@ func InitRaftClient(config *config.Config, option ...Option) *Client {
 		NodeDetails:    NewClusterPeer("0", config.Host, config.Port),
 		MemberChannel:  make(chan []*ClusterPeer),
 	}
+	// This is Functional Optional Pattern for automatically applying configured options while initilizing
 	for _, opt := range option {
 		opt(client)
 	}
+
 	go listenForChannelEvents(client)
 	client.StartElectionServer(config)
 	return client
@@ -102,7 +105,7 @@ func (client *Client) StartElectionServer(config *config.Config) {
 	wg.Add(1)
 	client.Election = NewElectionService(client)
 	if config.DebugMode {
-		config.GRPCPort = strconv.Itoa(rangeIn(8100, 10000))
+		config.GRPCPort = strconv.Itoa(utils.RangeIn(8100, 10000))
 	}
 	client.NodeDetails.GrpcPort = config.GRPCPort
 	startElectionServer(client, wg)
@@ -122,8 +125,4 @@ func startElectionServer(raft *Client, wg *sync.WaitGroup) {
 
 func (client *Client) IsLeader() bool {
 	return client.NodeDetails.NodePort == client.Election.GetLeaderId()
-}
-
-func rangeIn(low, hi int) int {
-	return low + rand.Intn(hi-low)
 }

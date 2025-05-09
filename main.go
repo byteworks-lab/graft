@@ -2,7 +2,7 @@ package main
 
 import (
 	"cache/config"
-	"cache/internal/raft/Client"
+	raft "cache/internal/raft/Client"
 	"cache/server"
 	"fmt"
 	"log"
