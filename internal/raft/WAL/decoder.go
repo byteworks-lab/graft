@@ -4,31 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"log"
 )
-
-func decodeWALEntry(walManager *Manager) ([]*WALLogEntry, error) {
-	buf := make([]byte, 1)
-	var bytesRead []byte
-	logs := make([]*WALLogEntry, 0)
-	walManager.Fd.Seek(0, 0)
-	for {
-		_, err := walManager.Fd.Read(buf)
-		if err != nil {
-			log.Fatal("received error reading from file: ", err)
-		}
-		bytesRead = append(bytesRead, buf...)
-		if buf[0] == '\n' {
-			wal, er_ := decodeBytesToWal(bytesRead)
-			logs = append(logs, wal)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding WAL entry: %v", er_)
-			}
-			bytesRead = []byte{}
-		}
-	}
-	return logs, nil
-}
 
 // decodeBytesToWal decodes a byte slice into a WALLogEntry
 // Parameters:

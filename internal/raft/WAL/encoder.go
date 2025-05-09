@@ -30,23 +30,6 @@ func encodeWALEntry(walManager *Manager, entry *pb.LogEntry) (*pb.LogEntry, erro
 	if err != nil {
 		return nil, err
 	}
-	//switch entry.Value.(type) {
-	//case string:
-	//	binary.Write(msg, binary.BigEndian, uint8(0))
-	//	binary.Write(msg, binary.BigEndian, uint8(len(entry.Value)))
-	//	msg.WriteString(entry.Value)
-	//
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//default:
-	//	binary.Write(msg, binary.BigEndian, 1)
-	//	encodedJson, _ := json.Marshal(entry)
-	//	encodedJson = append(encodedJson, '\n')
-	//	msg.Write(encodedJson)
-	//}
-	// Write a newline to separate entries if needed
-	// Flush the buffer to ensure all data is written to the file
 	byteRecord := append(msg.Bytes(), '\n')
 	walManager.Fd.Write(byteRecord)
 	byteRecord = []byte{}

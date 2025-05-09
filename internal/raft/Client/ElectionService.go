@@ -35,7 +35,7 @@ type ElectionService struct {
 }
 
 func NewElectionService(client *Client) *ElectionService {
-	duration := time.Duration(utils.RangeIn(5, 10)) * time.Second
+	duration := time.Duration(utils.RangeIn(5, 50)) * time.Microsecond
 	return &ElectionService{
 		currentTerm:        1,
 		votedFor:           "",
@@ -160,7 +160,6 @@ func (es *ElectionService) RunElectionLoop() error {
 			}
 			es.client.Unlock()
 		}
-
 	}
 }
 
@@ -190,26 +189,31 @@ func sendHeartBeats(es *ElectionService) {
 		if node.GrpcPort == es.client.NodeDetails.GrpcPort {
 			continue
 		}
+
 		token := getEncodedToken(es)
 		url := node.NodeAddr + ":" + node.GrpcPort
 		log.Println("Sending heartbeat to ", url)
+
 		dial, err := grpc.NewClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		defer dial.Close()
+
 		if err != nil {
 			log.Println("Cannot create grpc client", err)
 		}
+
 		client := pb.NewLeaderElectionClient(dial)
-		ctx, _ := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second)
+		defer cancelFunc()
+
 		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
 		hb := pb.HeartbeatRequest{
 			Term:     es.currentTerm,
 			LeaderId: es.leaderID,
 		}
-		heartbeat, err := client.Heartbeat(ctx, &hb)
+		_, err = client.Heartbeat(ctx, &hb)
 		if err != nil {
 			fmt.Println("Cannot send heartbeat to ", url, err)
 		}
-		fmt.Println(heartbeat)
 	}
 }
 

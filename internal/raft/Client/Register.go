@@ -54,7 +54,7 @@ func (sr *ServiceRegistry) jnitServiceRegister(config *config.Config) {
 	encodedJson, _ := json.Marshal(member)
 	err = binary.Write(msg, binary.BigEndian, uint8(0))
 	if err != nil {
-		log.Fatalf("marshal service register fail", err)
+		log.Fatal("marshal service register fail", err)
 	}
 	msg.Write(encodedJson)
 	write, err := conn.Write(msg.Bytes())
@@ -84,7 +84,7 @@ func (sr *ServiceRegistry) DeregisterService(config *config.Config) {
 	encodedJson, _ := json.Marshal(member)
 	err = binary.Write(msg, binary.BigEndian, uint8(1))
 	if err != nil {
-		log.Fatalf("marshal service register fail", err)
+		log.Fatal("marshal service register fail", err)
 	}
 	msg.Write(encodedJson)
 	write, err := conn.Write(msg.Bytes())
@@ -94,9 +94,14 @@ func (sr *ServiceRegistry) DeregisterService(config *config.Config) {
 	fmt.Println("written bytes :", write)
 }
 
+/*
+reads the reposne from the
+*/
 func readResponse(service *ServiceRegistry, conn net.Conn) {
 	var buffer bytes.Buffer
 	var resp *NodeRegisterationResponse = &NodeRegisterationResponse{}
+	//closing the channel when to have graceful shutdown
+	defer close(service.client.MemberChannel)
 	for {
 		data := make([]byte, 1024)
 		n, err := conn.Read(data)
@@ -115,9 +120,10 @@ func readResponse(service *ServiceRegistry, conn net.Conn) {
 		service.Secret = resp.Secret
 		for _, peer := range resp.Members {
 			fmt.Println("grpc port ", peer.GrpcPort)
+			fmt.Printf("Secret %s & Total Cluster Members %v\n", service.Secret, len(resp.Members))
+			service.client.MemberChannel <- resp.Members
 		}
-		fmt.Printf("Secret %s & Total Cluster Members %v\n", service.Secret, len(resp.Members))
-		service.client.MemberChannel <- resp.Members
+
 	}
 }
 

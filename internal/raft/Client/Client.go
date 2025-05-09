@@ -89,6 +89,7 @@ func (client *Client) BuildStore() (store.StoreInf, error) {
 }
 
 func listenForChannelEvents(client *Client) {
+	defer close(client.MemberChannel)
 	for {
 		select {
 		case event := <-client.MemberChannel:
@@ -108,19 +109,17 @@ func (client *Client) StartElectionServer(config *config.Config) {
 		config.GRPCPort = strconv.Itoa(utils.RangeIn(8100, 10000))
 	}
 	client.NodeDetails.GrpcPort = config.GRPCPort
-	startElectionServer(client, wg)
+	go startElectionServer(client, wg)
 	wg.Wait()
 }
 
 func startElectionServer(raft *Client, wg *sync.WaitGroup) {
 	// Start the election loop
 	defer wg.Done()
-	go func() {
-		err := raft.Election.RunElectionLoop()
-		if err != nil {
-			log.Fatalf("Election lost: %v", err)
-		}
-	}()
+	err := raft.Election.RunElectionLoop()
+	if err != nil {
+		log.Fatalf("Election lost: %v", err)
+	}
 }
 
 func (client *Client) IsLeader() bool {

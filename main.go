@@ -64,7 +64,3 @@ func main() {
 func rangeIn(low, hi int) int {
 	return low + rand.Intn(hi-low)
 }
-
-func handleIncomingTCPConnection(conn net.Conn) {
-	defer conn.Close()
-}
