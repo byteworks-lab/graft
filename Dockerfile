@@ -1,3 +1,4 @@
+######################Stage 1#################################
 FROM golang:1.22.5 as baseImage
 
 WORKDIR /app
@@ -8,15 +9,23 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main .
+RUN ls -al /app
 
-FROM gcr.io/distroless/baseImage
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+######################Stage 2#################################
 
-COPY --from=baseImage /app/main/ .
+FROM scratch
+
+WORKDIR /app
+
+# The other files wont go in the binary , only the compiled go files would be there
+COPY --from=baseImage /app/main .
+COPY --from=baseImage /app/config.json .
+
 
 EXPOSE 9090
 
-CMD ["./main"]
+ENTRYPOINT ["/app/main"]
 
 
 

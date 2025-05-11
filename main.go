@@ -20,7 +20,10 @@ const (
 
 func main() {
 	//Loads Configuration
-	c, _ := config.LoadConfig(ConfigFilename)
+	c, err := config.LoadConfig(ConfigFilename)
+	if c == nil || err != nil {
+		log.Fatal(" Null Config ")
+	}
 	if c.DebugMode {
 		c.Port = strconv.Itoa(rangeIn(5000, 6000))
 	}
