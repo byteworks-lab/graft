@@ -1,7 +1,6 @@
 package server
 
 import (
-	"cache/internal/domain"
 	pb "cache/internal/election"
 	raft "cache/internal/raft/Client"
 	"encoding/json"
@@ -90,7 +89,7 @@ func (s *Server) handleGetKey(w http.ResponseWriter, k string) bool {
 		w.Write([]byte("key not found"))
 		return true
 	}
-	b, err := json.Marshal(map[string]domain.Key{k: v})
+	b, err := json.Marshal(map[string]any{k: v})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return true

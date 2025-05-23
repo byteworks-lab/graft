@@ -9,21 +9,16 @@ import (
 
 // LRUCache implements a Least Recently Used (LRU) cache algorithm.
 type LRUCache struct {
-	Store    map[string]*domain.ListNode // Store stores key-value pairs along with their associated list nodes.
-	List     *cache.DoubleLinkedList     // List is a doubly linked list used to maintain the LRU order of cache entries.
-	capacity int                         // capacity represents the maximum number of items the cache can hold.
-	mu       sync.RWMutex                // mutex to provide thread safe operations
-}
-
-func (cache *LRUCache) Set(key string, value string) {
-	//TODO implement me
-	panic("implement me")
+	Store    map[any]*domain.ListNode // Store stores key-value pairs along with their associated list nodes.
+	List     *cache.DoubleLinkedList  // List is a doubly linked list used to maintain the LRU order of cache entries.
+	capacity int                      // capacity represents the maximum number of items the cache can hold.
+	mu       sync.RWMutex             // mutex to provide thread safe operations
 }
 
 // NewCache creates a new instance of LRUCache with the specified capacity.
 func NewCache(capacity int) *LRUCache {
 	return &LRUCache{
-		Store:    make(map[string]*domain.ListNode),
+		Store:    make(map[any]*domain.ListNode),
 		capacity: capacity,
 		List: &cache.DoubleLinkedList{
 			Head: nil,
@@ -34,13 +29,13 @@ func NewCache(capacity int) *LRUCache {
 
 // Put adds a new key-value pair to the cache.
 // If the cache is at full capacity, it evicts the least recently used item before adding the new one.
-func (cache *LRUCache) Put(k string, val string) {
+func (cache *LRUCache) Put(k any, val any) {
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
 	fmt.Printf("Cache size %d cache Capacity %d", len(cache.Store), cache.capacity)
 	// Evict the least recently used item if the cache is at full capacity.
 	if len(cache.Store) == cache.capacity {
-		cache.EvictKey()
+		cache.evictKey()
 	}
 
 	// Create a new list node for the key-value pair.
@@ -68,7 +63,7 @@ func (cache *LRUCache) Put(k string, val string) {
 // Get retrieves the value associated with the given key from the cache.
 // If the key doesn't exist in the cache, it returns nil.
 // If the key exists, it promotes the corresponding node to the tail of the linked list (indicating recent use).
-func (cache *LRUCache) Get(k string) (domain.Key, bool) {
+func (cache *LRUCache) Get(k any) (any, bool) {
 	cache.mu.RLock()
 	defer cache.mu.RUnlock()
 	node, ok := cache.Store[k]
@@ -93,7 +88,7 @@ func (cache *LRUCache) Get(k string) (domain.Key, bool) {
 	cache.List.Tail.Next = node
 	cache.List.Tail = node
 
-	return &node.Val, true
+	return node.Val, true
 }
 
 // GetAllCacheData prints all keys along with their corresponding values in the cache.
@@ -104,16 +99,16 @@ func (cache *LRUCache) GetAllCacheData() {
 	}
 }
 
-// PrintLevelCacheData prints cached keys grouped by their levels.
-// For LRUCache, since there are no levels, this function does nothing.
+/*
+PrintLevelCacheData prints cached keys grouped by their levels.
+For LRUCache, since there are no levels, this function does nothing.
+*/
 func (cache *LRUCache) PrintLevelCacheData() {
 	// No levels to print for LRUCache.
 }
 
 // EvictKey evicts the least recently used key from the cache.
-func (cache *LRUCache) EvictKey() {
-	cache.mu.Lock()
-	defer cache.mu.Unlock()
+func (cache *LRUCache) evictKey() {
 	headNode := cache.List.Head
 
 	// Remove the least recently used node from the cache.
@@ -126,8 +121,8 @@ func (cache *LRUCache) EvictKey() {
 	}
 	headNode = nil
 }
-func (cache *LRUCache) Delete(key string) bool {
+
+func (cache *LRUCache) Delete(key any) bool {
 	delete(cache.Store, key)
 	return true
-
 }

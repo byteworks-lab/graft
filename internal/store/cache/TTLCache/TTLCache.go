@@ -1,8 +1,7 @@
 package cache
 
 import (
-	"cache/internal/domain"
-	"cache/internal/store/cache/interface"
+	_interface "cache/internal/store/cache/interface"
 	"fmt"
 	"log"
 	"sync"
@@ -11,12 +10,12 @@ import (
 
 // TTLCache implements a Time-To-Live (TTL) cache algorithm.
 type TTLCache struct {
-	CacheMap  map[domain.Key]*TTLEntry // CacheMap stores key-value pairs along with their associated TTL entries.
-	Capacity  int                      // Capacity represents the maximum number of items the cache can hold.
-	TTLExpiry time.Duration            // TTLExpiry represents the time duration after which entries expire.
-	Interval  time.Duration            // Interval represents the interval at which the cache cleaner runs to check for expired entries.
-	Expora    *TTLCleaner              // Expora is the TTL cleaner responsible for evicting expired entries.
-	evicted   chan domain.Key          // evicted is a channel to communicate evicted keys.
+	CacheMap  map[any]*TTLEntry // CacheMap stores key-value pairs along with their associated TTL entries.
+	Capacity  int               // Capacity represents the maximum number of items the cache can hold.
+	TTLExpiry time.Duration     // TTLExpiry represents the time duration after which entries expire.
+	Interval  time.Duration     // Interval represents the interval at which the cache cleaner runs to check for expired entries.
+	Expora    *TTLCleaner       // Expora is the TTL cleaner responsible for evicting expired entries.
+	evicted   chan any          // evicted is a channel to communicate evicted keys.
 }
 
 func (cache *TTLCache) Delete(key string) bool {
@@ -34,7 +33,7 @@ func (cache *TTLCache) EvictKey() {
 // NewCache creates a new instance of TTLCache with the specified capacity, TTL expiry duration, and cleaning interval.
 func NewCache(capacity int, interval time.Duration, ttl time.Duration) _interface.Cache {
 	ttlCache := &TTLCache{
-		CacheMap: make(map[domain.Key]*TTLEntry),
+		CacheMap: make(map[any]*TTLEntry),
 		Capacity: capacity,
 		Expora:   NewTTLCleaner(ttl, interval),
 	}
@@ -47,7 +46,7 @@ func NewCache(capacity int, interval time.Duration, ttl time.Duration) _interfac
 
 // Get retrieves the value associated with the given key from the cache.
 // If the key doesn't exist in the cache, it returns -1.
-func (cache *TTLCache) Get(key string) (domain.Key, bool) {
+func (cache *TTLCache) Get(key string) (any, bool) {
 	if entry, ok := cache.CacheMap[key]; ok {
 		cache.updateEntry(entry)
 		return entry.val, false
@@ -57,7 +56,7 @@ func (cache *TTLCache) Get(key string) (domain.Key, bool) {
 }
 
 // Evict removes the entry associated with the given key from the cache.
-func (cache *TTLCache) Evict(key domain.Key) {
+func (cache *TTLCache) Evict(key any) {
 	delete(cache.CacheMap, key)
 }
 
