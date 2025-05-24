@@ -126,7 +126,7 @@ func (s *Server) handleSetKey(w http.ResponseWriter, r *http.Request, walLog []*
 	wg.Wait()
 	// Since the entry has been successfully replicated, put it into leader store
 	for _, entry := range walLog {
-		s.Client.Store.Set(entry.Key, entry.Value)
+		s.Client.Store.Put(entry.Key, entry.Value)
 	}
 	appendLog, err := s.WAlManager.AppendLog(logentry)
 	if err != nil || !appendLog {

@@ -27,7 +27,7 @@ func (cleaner *TTLCleaner) Clean(cache *TTLCache) {
 		value.mu.Lock()
 		if time.Now().After(value.EntryTime.Add(cache.TTLExpiry)) {
 			fmt.Println("Removing expired entry", key)
-			cache.Evict(key)
+			cache.evict(key)
 		}
 		value.mu.Unlock()
 	}

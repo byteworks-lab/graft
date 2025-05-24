@@ -16,9 +16,10 @@ type TTLCache struct {
 	Interval  time.Duration     // Interval represents the interval at which the cache cleaner runs to check for expired entries.
 	Expora    *TTLCleaner       // Expora is the TTL cleaner responsible for evicting expired entries.
 	evicted   chan any          // evicted is a channel to communicate evicted keys.
+	sync.Mutex
 }
 
-func (cache *TTLCache) Delete(key string) bool {
+func (cache *TTLCache) Delete(key any) bool {
 	//TODO implement me
 	delete(cache.CacheMap, key)
 	return true
@@ -40,13 +41,14 @@ func NewCache(capacity int, interval time.Duration, ttl time.Duration) _interfac
 
 	// Start the TTL cleaner routine to periodically check and evict expired entries.
 	go ttlCache.Expora.Run(ttlCache)
-
 	return ttlCache
 }
 
 // Get retrieves the value associated with the given key from the cache.
 // If the key doesn't exist in the cache, it returns -1.
-func (cache *TTLCache) Get(key string) (any, bool) {
+func (cache *TTLCache) Get(key any) (any, bool) {
+	cache.Lock()
+	defer cache.Unlock()
 	if entry, ok := cache.CacheMap[key]; ok {
 		cache.updateEntry(entry)
 		return entry.val, false
@@ -56,7 +58,7 @@ func (cache *TTLCache) Get(key string) (any, bool) {
 }
 
 // Evict removes the entry associated with the given key from the cache.
-func (cache *TTLCache) Evict(key any) {
+func (cache *TTLCache) evict(key any) {
 	delete(cache.CacheMap, key)
 }
 
@@ -68,7 +70,9 @@ func (cache *TTLCache) GetAllCacheData() {
 }
 
 // Put adds a new key-value pair to the cache.
-func (cache *TTLCache) Set(key string, val string) {
+func (cache *TTLCache) Put(key any, val any) {
+	cache.Mutex.Lock()
+	defer cache.Mutex.Unlock()
 	entry := &TTLEntry{
 		val:       val,
 		key:       key,
@@ -87,8 +91,8 @@ func (cache *TTLCache) updateEntry(entry *TTLEntry) {
 
 // TTLEntry represents an entry in the TTL cache with key, value, and entry time.
 type TTLEntry struct {
-	key       string       // key is the unique identifier for the cache entry.
-	val       string       // val is the value associated with the cache entry.
+	key       any          // key is the unique identifier for the cache entry.
+	val       any          // val is the value associated with the cache entry.
 	EntryTime time.Time    // EntryTime represents the time when the entry was added to the cache.
 	mu        sync.RWMutex // mu provides synchronization for concurrent access to the entry.
 }

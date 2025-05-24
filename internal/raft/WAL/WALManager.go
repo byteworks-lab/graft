@@ -5,11 +5,12 @@ import (
 	raft "cache/internal/raft/Client"
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"os"
 	"sync"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type ManagerInf interface {
@@ -74,7 +75,7 @@ func (walManager *Manager) UpdateReplicaDataStore(entry *pb.AppendEntriesRequest
 	for _, en := range entry.Entries {
 		switch en.Operation {
 		case 0:
-			store.Set(en.Key, en.Value)
+			store.Put(en.Key, en.Value)
 			break
 		case 1:
 			store.Delete(en.Key)
